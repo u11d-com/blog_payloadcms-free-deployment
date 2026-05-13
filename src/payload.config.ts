@@ -1,4 +1,6 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
+import { storagePlugin } from '@payloadcms/plugin-cloud-storage'
+import { s3Adapter } from '@payloadcms/plugin-cloud-storage/s3'
 import sharp from 'sharp'
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
@@ -20,14 +22,7 @@ const dirname = path.dirname(filename)
 
 export default buildConfig({
   admin: {
-    components: {
-      // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
-      // Feel free to delete this at any time. Simply remove the line below.
-      beforeLogin: ['@/components/BeforeLogin'],
-      // The `BeforeDashboard` component renders the 'welcome' block that you see after logging into your admin panel.
-      // Feel free to delete this at any time. Simply remove the line below.
-      beforeDashboard: ['@/components/BeforeDashboard'],
-    },
+    components: {},
     importMap: {
       baseDir: path.resolve(dirname),
     },
@@ -63,7 +58,28 @@ export default buildConfig({
   collections: [Pages, Posts, Media, Categories, Users],
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
-  plugins,
+  plugins: [
+    storagePlugin({
+      collections: {
+        media: {
+          adapter: s3Adapter({
+            config: {
+              credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+              },
+              region: process.env.AWS_REGION || 'us-east-1',
+              endpoint: undefined, // Use AWS default endpoint
+            },
+            bucket: process.env.S3_BUCKET || '',
+            disableLocalStorage: true,
+            preventLocalAccess: true,
+          }),
+        },
+      },
+    }),
+    ...plugins,
+  ],
   secret: process.env.PAYLOAD_SECRET,
   sharp,
   typescript: {

@@ -1,0 +1,37 @@
+version: 1
+applications:
+  - appRoot: .
+    env:
+      variables:
+        NODE_ENV: production
+        NODE_OPTIONS: --no-deprecation
+    phases:
+      preBuild:
+        commands:
+          - echo "Installing dependencies..."
+          - npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+      build:
+        commands:
+          - echo "Building the application..."
+          - npm run build
+      postBuild:
+        commands:
+          - echo "Post build complete"
+    artifacts:
+      paths:
+        - .next/**/*
+        - public/**/*
+        - node_modules/**/*
+        - package.json
+        - package-lock.json
+      discard-paths: no
+      baseDirectory: .
+    cache:
+      paths:
+        - node_modules/**/*
+        - .next/cache/**/*
+    customHeaders:
+      - pattern: "**/*"
+        headers:
+          - key: "Cache-Control"
+            value: "max-age=0, no-cache, no-store, must-revalidate"

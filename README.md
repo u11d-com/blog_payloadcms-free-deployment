@@ -1,52 +1,382 @@
-# Payload Website Template
+# Payload CMS Blog - Free Deployment Demo
 
-This is the official [Payload Website Template](https://github.com/payloadcms/payload/blob/3.x/templates/website). Use it to power websites, blogs, or portfolios from small to enterprise. This repo includes a fully-working backend, enterprise-grade admin panel, and a beautifully designed, production-ready website.
+A clean, minimal blog template showcasing Payload CMS deployed on **AWS Amplify** with **MongoDB Cloud** and **S3 storage**. This is an ideal starting point to demonstrate Payload CMS capabilities on AWS infrastructure without the complexity of forms, nested categories, or search features.
 
-This template is right for you if you are working on:
+## What's Included
 
-- A personal or enterprise-grade website, blog, or portfolio
-- A content publishing platform with a fully featured publication workflow
-- Exploring the capabilities of Payload
+- **Landing page + Blog posts** - Public-facing content
+- **Payload CMS admin panel** - Full content management
+- **Media management** - Upload images directly to S3
+- **Authentication & user roles** - Secure admin access
+- **SEO optimized** - Meta tags, OpenGraph, sitemaps
+- **Draft & published states** - Scheduled publishing support
+- **Live preview** - See changes in real-time
+- **AWS-ready** - Pre-configured for Amplify deployment
 
-Core features:
+## What's Removed (for simplicity)
 
-- [Pre-configured Payload Config](#how-it-works)
-- [Authentication](#users-authentication)
-- [Access Control](#access-control)
-- [Layout Builder](#layout-builder)
-- [Draft Preview](#draft-preview)
-- [Live Preview](#live-preview)
-- [On-demand Revalidation](#on-demand-revalidation)
-- [SEO](#seo)
-- [Search](#search)
-- [Redirects](#redirects)
-- [Jobs and Scheduled Publishing](#jobs-and-scheduled-publish)
-- [Website](#website)
+- ❌ Form builder plugin
+- ❌ Search functionality
+- ❌ Nested categories
+- ❌ Seed data endpoint
+- ❌ Demo admin UI components
+- ❌ Vercel-specific code
 
-## Quick Start
+**Free to add back later** - All removed features can be re-enabled from [Payload plugins](https://payloadcms.com/docs/plugins/overview).
 
-To spin up this example locally, follow these steps:
+## Quick Start - Local Development
 
-### Clone
+### Prerequisites
 
-If you have not done so already, you need to have standalone copy of this repo on your machine. If you've already cloned this repo, skip to [Development](#development).
+- Node.js 20+
+- pnpm or npm
+- MongoDB local instance (or MongoDB Atlas)
 
-Use the `create-payload-app` CLI to clone this template directly to your machine:
+### Setup
+
+1. Clone and install:
 
 ```bash
-pnpx create-payload-app my-project -t website
+git clone <your-repo>
+cd blog-payloadcms-free-deployment
+cp .env.example .env
+pnpm install
 ```
 
-### Development
+2. Start MongoDB locally (or update `DATABASE_URL` in `.env`):
 
-1. First [clone the repo](#clone) if you have not done so already
-1. `cd my-project && cp .env.example .env` to copy the example environment variables
-1. `pnpm install && pnpm dev` to install dependencies and start the dev server
-1. open `http://localhost:3000` to open the app in your browser
+```bash
+# Using Docker
+docker run -d -p 27017:27017 mongo:latest
 
-That's it! Changes made in `./src` will be reflected in your app. Follow the on-screen instructions to login and create your first admin user. Then check out [Production](#production) once you're ready to build and serve your app, and [Deployment](#deployment) when you're ready to go live.
+# Or install locally: brew install mongodb-community
+brew services start mongodb-community
+```
 
-## How it works
+3. Start dev server:
+
+```bash
+pnpm dev
+```
+
+4. Open browser:
+   - Website: http://localhost:3000
+   - Admin: http://localhost:3000/admin
+
+5. Follow on-screen prompts to create your first admin user and start creating content.
+
+## Cloud Deployment - AWS Amplify
+
+### Prerequisites
+
+- AWS account (free tier eligible)
+- MongoDB Cloud account (free tier available)
+- GitHub repository
+
+### Deploy in 5 Steps
+
+For detailed step-by-step instructions, see [AMPLIFY_DEPLOYMENT.md](./AMPLIFY_DEPLOYMENT.md).
+
+**Quick summary:**
+
+1. **MongoDB Atlas** - Create free database cluster
+2. **S3 bucket** - Create storage for media uploads via IAM user
+3. **Generate secrets** - Create `PAYLOAD_SECRET`, `CRON_SECRET`, `PREVIEW_SECRET`
+4. **AWS Amplify** - Connect GitHub repo and set environment variables
+5. **Deploy** - Amplify auto-builds and deploys to `https://[app-id].amplifyapp.com`
+
+```bash
+# After deployment, access:
+# Website:  https://your-app.amplifyapp.com
+# Admin:    https://your-app.amplifyapp.com/admin
+```
+
+### Estimated Monthly Costs (Free Tier Demo)
+
+| Service | Usage | Cost |
+|---------|-------|------|
+| Amplify | <50GB/month | **Free** |
+| MongoDB Cloud | <512MB storage | **Free** |
+| S3 | <1GB storage | <$0.05 |
+| **Total** | | **~$0.05** |
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    AWS Amplify (Next.js)                    │
+│  ┌──────────────────────┐      ┌─────────────────────────┐ │
+│  │   Admin Dashboard    │◄────►│   Next.js Frontend      │ │
+│  │  (Payload CMS)       │      │  (Landing + Blog)       │ │
+│  └──────────────────────┘      └─────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+           │                                   │
+           │ Content/Auth                      │ Reads
+           ▼                                   ▼
+    ┌──────────────────────────────────────────────────────┐
+    │         MongoDB Cloud (Database)                     │
+    │  • Posts • Pages • Media metadata • Users            │
+    └──────────────────────────────────────────────────────┘
+           │
+           │ Media files
+           ▼
+    ┌──────────────────────────────────────────────────────┐
+    │         AWS S3 + (Optional) CloudFront CDN           │
+    │  • Store blog images, uploads                        │
+    │  • Serve with CDN for fast delivery                  │
+    └──────────────────────────────────────────────────────┘
+```
+
+## Project Structure
+
+```
+.
+├── src/
+│   ├── app/                    # Next.js app directory
+│   │   ├── (frontend)/        # Public website
+│   │   └── (payload)/         # Admin panel
+│   ├── collections/           # Data models
+│   │   ├── Pages.ts
+│   │   ├── Posts.ts
+│   │   ├── Media.ts
+│   │   ├── Categories.ts
+│   │   └── Users.ts
+│   ├── blocks/               # Layout builder blocks
+│   │   ├── Content/
+│   │   ├── CallToAction/
+│   │   ├── Banner/
+│   │   ├── Code/
+│   │   ├── MediaBlock/
+│   │   ├── ArchiveBlock/
+│   │   └── RelatedPosts/
+│   ├── plugins/              # Payload plugins config
+│   ├── utilities/            # Helper functions
+│   ├── components/           # React components
+│   ├── Header/               # Header global
+│   ├── Footer/               # Footer global
+│   ├── heros/                # Hero variants
+│   ├── payload.config.ts     # Payload CMS config (with S3)
+│   └── environment.d.ts      # Env var types
+├── public/                   # Static files
+├── amplify.yml              # Amplify build config
+├── next.config.ts           # Next.js config
+├── package.json             # Dependencies
+├── .env.example             # Environment template
+└── AMPLIFY_DEPLOYMENT.md    # Deployment guide
+```
+
+## Collections & Globals
+
+### Collections (Content)
+
+- **Posts** - Blog articles with featured images, categories, authors
+- **Pages** - Static pages (home, about, etc.) with flexible layouts
+- **Media** - Images and files (stored in S3 in Amplify)
+- **Categories** - Post taxonomy (simple, non-nested)
+- **Users** - Authors and admin panel access
+
+### Globals
+
+- **Header** - Navigation menu
+- **Footer** - Footer links
+
+### Features
+
+- **Draft & Publish** - Create drafts, schedule publishing
+- **Live Preview** - See changes in real-time before publishing
+- **SEO** - Built-in meta tags, OpenGraph, auto-generated sitemaps
+- **Versions** - Keep revision history (up to 50 versions/doc)
+- **Redirects** - Manage URL redirects when moving content
+
+## Key Configuration Files
+
+### `src/payload.config.ts`
+
+Payload CMS configuration:
+
+```typescript
+// Includes S3 storage plugin (Amplify)
+storagePlugin({
+  collections: {
+    media: {
+      adapter: s3Adapter({
+        config: {
+          credentials: { accessKeyId, secretAccessKey },
+          region: process.env.AWS_REGION,
+        },
+        bucket: process.env.S3_BUCKET,
+      }),
+    },
+  },
+})
+```
+
+### `src/environment.d.ts`
+
+TypeScript types for environment variables.
+
+### `amplify.yml`
+
+AWS Amplify build configuration - specifies build commands, artifacts, and caching.
+
+### `.env.example` & `.env`
+
+Environment variables:
+- `DATABASE_URL` - MongoDB Atlas connection
+- `PAYLOAD_SECRET` - JWT encryption key
+- `NEXT_PUBLIC_SERVER_URL` - App URL (auto-set on Amplify)
+- `AWS_*` - S3 credentials
+- `S3_BUCKET` - S3 bucket name
+
+## Environment Variables
+
+### Required for AWS Amplify
+
+```env
+# Database (MongoDB Cloud)
+DATABASE_URL=mongodb+srv://user:pass@cluster.mongodb.net/db
+
+# Security
+PAYLOAD_SECRET=<48-char hex string>
+CRON_SECRET=<48-char hex string>
+PREVIEW_SECRET=<48-char hex string>
+
+# Server URL (auto-set by Amplify)
+NEXT_PUBLIC_SERVER_URL=https://your-app.amplifyapp.com
+
+# AWS S3
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=<from IAM user>
+AWS_SECRET_ACCESS_KEY=<from IAM user>
+S3_BUCKET=your-bucket-name
+
+# Optional: CloudFront CDN
+CLOUDFRONT_DOMAIN=d123456.cloudfront.net
+```
+
+Store secrets in AWS Secrets Manager or Amplify environment variables - **never commit to git**.
+
+## Customization
+
+### Add Search Back
+
+```bash
+pnpm add @payloadcms/plugin-search
+```
+
+Then re-add to `src/plugins/index.ts`.
+
+### Add Forms
+
+```bash
+pnpm add @payloadcms/plugin-form-builder
+```
+
+### Change Branding
+
+- Update site title in `src/plugins/index.ts` (`generateTitle` function)
+- Update Open Graph in `src/utilities/mergeOpenGraph.ts`
+- Customize header/footer in CMS: `/admin/globals/header`, `/admin/globals/footer`
+
+### Add Custom Domain
+
+In Amplify console > App settings > Domain management, add your custom domain.
+
+## Troubleshooting
+
+### "Module not found" errors after changes?
+
+```bash
+pnpm run generate:types
+pnpm run generate:importmap
+```
+
+### Images not showing in production?
+
+1. Check S3 bucket policy allows public read access
+2. Verify IAM user has `s3:PutObject` permission
+3. Check `AWS_*` environment variables in Amplify
+4. See [AMPLIFY_DEPLOYMENT.md](./AMPLIFY_DEPLOYMENT.md#troubleshooting)
+
+### Admin panel won't load?
+
+1. Check `DATABASE_URL` is correct
+2. Verify MongoDB Atlas IP whitelist includes Amplify IPs
+3. Check browser console for errors (`/admin` with DevTools open)
+
+### Amplify build failing?
+
+Check deployment logs: Amplify console > Deployments > [Latest] > Build logs
+
+Common causes:
+- Missing environment variables
+- Invalid `DATABASE_URL`
+- S3 bucket doesn't exist or IAM user lacks permissions
+- Node.js version mismatch
+
+## Deployment Checklist
+
+- [ ] MongoDB Atlas cluster created
+- [ ] S3 bucket created with public read policy
+- [ ] IAM user created with S3 permissions
+- [ ] Secrets generated and stored (never commit!)
+- [ ] GitHub repo ready with `amplify.yml`
+- [ ] Amplify app created and connected to GitHub
+- [ ] Environment variables set in Amplify console
+- [ ] First deployment successful
+- [ ] Admin user created via `/admin`
+- [ ] Sample content created
+- [ ] Custom domain configured (optional)
+
+## Production Considerations
+
+### Security
+
+- Keep all secrets in AWS Secrets Manager or Amplify env vars
+- Enable HTTPS (automatic on Amplify)
+- Rotate `PAYLOAD_SECRET` periodically
+- Set strong passwords for MongoDB Atlas and admin users
+- Use restrictive IAM policies (least privilege)
+
+### Performance
+
+- Enable CloudFront CDN for images
+- Use Amplify caching for static content
+- Monitor Amplify Analytics > Metrics
+- Test with browser DevTools Throttling
+
+### Reliability
+
+- Enable MongoDB Atlas backups (automatic on paid tier)
+- Set up CloudWatch alarms for high error rates
+- Monitor Amplify build and deployment success
+- Keep Node.js and dependencies updated
+
+### Cost
+
+- Monitor AWS Cost Explorer
+- Use reserved capacity for predictable workloads
+- Clean up unused resources (buckets, distributions)
+- Free tier limits: 50 GB transfer/month on Amplify
+
+## Learn More
+
+- [Payload CMS Docs](https://payloadcms.com/docs)
+- [Next.js Docs](https://nextjs.org/docs)
+- [AWS Amplify Docs](https://docs.amplify.aws)
+- [MongoDB Cloud Docs](https://docs.mongodb.com/cloud)
+
+## Support
+
+For issues or questions:
+
+1. Check [AMPLIFY_DEPLOYMENT.md](./AMPLIFY_DEPLOYMENT.md#troubleshooting)
+2. Review [Payload CMS Docs](https://payloadcms.com/docs)
+3. Open an issue on GitHub
+
+## License
+
+MIT
 
 The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
 
