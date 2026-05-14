@@ -2,6 +2,7 @@ import { getServerSideSitemap } from 'next-sitemap'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { unstable_cache } from 'next/cache'
+import { FRONTEND_CACHE_TAG } from '@/hooks/revalidateFrontend'
 
 const getPostsSitemap = unstable_cache(
   async () => {
@@ -41,7 +42,7 @@ const getPostsSitemap = unstable_cache(
   },
   ['posts-sitemap'],
   {
-    tags: ['posts-sitemap'],
+    tags: [FRONTEND_CACHE_TAG],
   },
 )
 

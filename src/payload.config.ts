@@ -1,6 +1,5 @@
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
-import { storagePlugin } from '@payloadcms/plugin-cloud-storage'
-import { s3Adapter } from '@payloadcms/plugin-cloud-storage/s3'
+import { s3Storage } from '@payloadcms/storage-s3'
 import sharp from 'sharp'
 import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
@@ -59,24 +58,20 @@ export default buildConfig({
   cors: [getServerSideURL()].filter(Boolean),
   globals: [Header, Footer],
   plugins: [
-    storagePlugin({
+    s3Storage({
       collections: {
-        media: {
-          adapter: s3Adapter({
-            config: {
-              credentials: {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-              },
-              region: process.env.AWS_REGION || 'us-east-1',
-              endpoint: undefined, // Use AWS default endpoint
-            },
-            bucket: process.env.S3_BUCKET || '',
-            disableLocalStorage: true,
-            preventLocalAccess: true,
-          }),
-        },
+        media: true,
       },
+      config: {
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        },
+        region: process.env.AWS_REGION || 'us-east-1',
+        endpoint: undefined, // Use AWS default endpoint
+      },
+      bucket: process.env.S3_BUCKET || '',
+      disableLocalStorage: true,
     }),
     ...plugins,
   ],

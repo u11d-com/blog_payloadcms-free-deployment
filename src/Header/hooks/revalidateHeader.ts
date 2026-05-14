@@ -1,12 +1,13 @@
 import type { GlobalAfterChangeHook } from 'payload'
 
-import { revalidateTag } from 'next/cache'
+import { revalidateFrontend } from '@/hooks/revalidateFrontend'
 
 export const revalidateHeader: GlobalAfterChangeHook = ({ doc, req: { payload, context } }) => {
   if (!context.disableRevalidate) {
-    payload.logger.info(`Revalidating header`)
-
-    revalidateTag('global_header', 'max')
+    revalidateFrontend({
+      logger: payload.logger,
+      reason: 'header changed',
+    })
   }
 
   return doc

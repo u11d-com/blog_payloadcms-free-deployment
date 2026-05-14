@@ -1,6 +1,6 @@
 import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidateFrontend } from '@/hooks/revalidateFrontend'
 
 import type { Page } from '../../../payload-types'
 
@@ -13,30 +13,40 @@ export const revalidatePage: CollectionAfterChangeHook<Page> = ({
     if (doc._status === 'published') {
       const path = doc.slug === 'home' ? '/' : `/${doc.slug}`
 
-      payload.logger.info(`Revalidating page at path: ${path}`)
-
-      revalidatePath(path)
-      revalidateTag('pages-sitemap', 'max')
+      revalidateFrontend({
+        logger: payload.logger,
+        reason: `page published/updated at ${path}`,
+      })
     }
 
-    // If the page was previously published, we need to revalidate the old path
-    if (previousDoc?._status === 'published' && doc._status !== 'published') {
+    // If the page was previously published, revalidate the old path as well
+    // (covers unpublish and slug changes)
+    if (
+      previousDoc?._status === 'published' &&
+      (doc._status !== 'published' || previousDoc.slug !== doc.slug)
+    ) {
       const oldPath = previousDoc.slug === 'home' ? '/' : `/${previousDoc.slug}`
 
-      payload.logger.info(`Revalidating old page at path: ${oldPath}`)
-
-      revalidatePath(oldPath)
-      revalidateTag('pages-sitemap', 'max')
+      revalidateFrontend({
+        logger: payload.logger,
+        reason: `page unpublished/slug-changed from ${oldPath}`,
+      })
     }
   }
   return doc
 }
 
-export const revalidateDelete: CollectionAfterDeleteHook<Page> = ({ doc, req: { context } }) => {
+export const revalidateDelete: CollectionAfterDeleteHook<Page> = ({
+  doc,
+  req: { payload, context },
+}) => {
   if (!context.disableRevalidate) {
     const path = doc?.slug === 'home' ? '/' : `/${doc?.slug}`
-    revalidatePath(path)
-    revalidateTag('pages-sitemap', 'max')
+
+    revalidateFrontend({
+      logger: payload.logger,
+      reason: `page deleted at ${path}`,
+    })
   }
 
   return doc
