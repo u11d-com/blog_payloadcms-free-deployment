@@ -11,7 +11,7 @@ frontend:
         - echo "Building the application..."
         - rm -f .env.production
         - env | grep -e '^NEXT_PUBLIC_' >> .env.production || true
-        - env | grep -e '^DATABASE_URL=' -e '^PAYLOAD_SECRET=' -e '^CRON_SECRET=' -e '^PREVIEW_SECRET=' -e '^S3_BUCKET=' -e '^S3_REGION=' -e '^S3_ACCESS_KEY_ID=' -e '^S3_SECRET_ACCESS_KEY=' -e '^S3_PUBLIC_BASE_URL=' >> .env.production || true
+        - env | grep -e '^DATABASE_URL=' -e '^PAYLOAD_SECRET=' -e '^CRON_SECRET=' -e '^PREVIEW_SECRET=' -e '^S3_BUCKET=' -e '^S3_REGION=' -e '^S3_ACCESS_KEY_ID=' -e '^S3_SECRET_ACCESS_KEY=' -e  >> .env.production || true
         - npm run build
     postBuild:
       commands:

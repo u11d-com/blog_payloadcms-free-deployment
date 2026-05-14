@@ -93,12 +93,12 @@ For detailed step-by-step instructions, see [AMPLIFY_DEPLOYMENT.md](./AMPLIFY_DE
 
 ### Estimated Monthly Costs (Free Tier Demo)
 
-| Service | Usage | Cost |
-|---------|-------|------|
-| Amplify | <50GB/month | **Free** |
-| MongoDB Cloud | <512MB storage | **Free** |
-| S3 | <1GB storage | <$0.05 |
-| **Total** | | **~$0.05** |
+| Service       | Usage          | Cost       |
+| ------------- | -------------- | ---------- |
+| Amplify       | <50GB/month    | **Free**   |
+| MongoDB Cloud | <512MB storage | **Free**   |
+| S3            | <1GB storage   | <$0.05     |
+| **Total**     |                | **~$0.05** |
 
 ## Architecture
 
@@ -202,7 +202,7 @@ storagePlugin({
       adapter: s3Adapter({
         config: {
           credentials: { accessKeyId, secretAccessKey },
-          region: process.env.AWS_REGION,
+          region: process.env.S3_REGION,
         },
         bucket: process.env.S3_BUCKET,
       }),
@@ -222,6 +222,7 @@ AWS Amplify build configuration - specifies build commands, artifacts, and cachi
 ### `.env.example` & `.env`
 
 Environment variables:
+
 - `DATABASE_URL` - MongoDB Atlas connection
 - `PAYLOAD_SECRET` - JWT encryption key
 - `NEXT_PUBLIC_SERVER_URL` - App URL (auto-set on Amplify)
@@ -245,13 +246,11 @@ PREVIEW_SECRET=<48-char hex string>
 NEXT_PUBLIC_SERVER_URL=https://your-app.amplifyapp.com
 
 # AWS S3
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=<from IAM user>
-AWS_SECRET_ACCESS_KEY=<from IAM user>
+S3_REGION=us-east-1
+S3_ACCESS_KEY_ID=<from IAM user>
+S3_SECRET_ACCESS_KEY=<from IAM user>
 S3_BUCKET=your-bucket-name
 
-# Optional: CloudFront CDN
-CLOUDFRONT_DOMAIN=d123456.cloudfront.net
 ```
 
 Store secrets in AWS Secrets Manager or Amplify environment variables - **never commit to git**.
@@ -309,6 +308,7 @@ pnpm run generate:importmap
 Check deployment logs: Amplify console > Deployments > [Latest] > Build logs
 
 Common causes:
+
 - Missing environment variables
 - Invalid `DATABASE_URL`
 - S3 bucket doesn't exist or IAM user lacks permissions
@@ -448,7 +448,7 @@ A deep editorial experience that allows complete freedom to focus just on writin
 
 All posts and pages are draft-enabled so you can preview them before publishing them to your website. To do this, these collections use [Versions](https://payloadcms.com/docs/configuration/collections#versions) with `drafts` set to `true`. This means that when you create a new post, project, or page, it will be saved as a draft and will not be visible on your website until you publish it. This also means that you can preview your draft before publishing it to your website. To do this, we automatically format a custom URL which redirects to your front-end to securely fetch the draft version of your content.
 
-Since the front-end of this template is statically generated, this also means that pages, posts, and projects will need to be regenerated as changes are made to published documents. To do this, we use an `afterChange` hook to regenerate the front-end when a document has changed and its `_status` is `published`.
+Public content routes for pages and posts are rendered dynamically, so published edits are visible immediately on the next request.
 
 For more details on how to extend this functionality, see the official [Draft Preview Example](https://github.com/payloadcms/payload/tree/3.x/examples/draft-preview).
 
@@ -458,7 +458,7 @@ In addition to draft previews you can also enable live preview to view your end 
 
 ## On-demand Revalidation
 
-We've added hooks to collections and globals so that all of your pages, posts, footer, or header changes will automatically be updated in the frontend via on-demand revalidation supported by Nextjs.
+We've added hooks to collections and globals so cached frontend surfaces (like globals and sitemap routes) are updated via on-demand revalidation in Next.js.
 
 > Note: if an image has been changed, for example it's been cropped, you will need to republish the page it's used on in order to be able to revalidate the Nextjs image cache.
 
