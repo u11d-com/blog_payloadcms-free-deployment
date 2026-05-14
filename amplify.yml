@@ -1,37 +1,26 @@
 version: 1
-applications:
-  - appRoot: .
-    env:
-      variables:
-        NODE_ENV: production
-        NODE_OPTIONS: --no-deprecation
-    phases:
-      preBuild:
-        commands:
-          - echo "Installing dependencies..."
-          - npm ci --legacy-peer-deps
-      build:
-        commands:
-          - echo "Building the application..."
-          - npm run build
-      postBuild:
-        commands:
-          - echo "Post build complete"
-    artifacts:
-      paths:
-        - .next/**/*
-        - public/**/*
-        - node_modules/**/*
-        - package.json
-        - package-lock.json
-      discard-paths: no
-      baseDirectory: .
-    cache:
-      paths:
-        - node_modules/**/*
-        - .next/cache/**/*
-    customHeaders:
-      - pattern: '**/*'
-        headers:
-          - key: 'Cache-Control'
-            value: 'max-age=0, no-cache, no-store, must-revalidate'
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Installing dependencies..."
+        - npm ci
+    build:
+      # https://docs.aws.amazon.com/amplify/latest/userguide/ssr-environment-variables.html#:~:text=Amplify%20Hosting%20supports%20adding%20environment,in%20the%20build%20commands%20section.
+      commands:
+        - echo "Building the application..."
+        - rm -f .env.production
+        - env | grep -e '^NEXT_PUBLIC_' >> .env.production || true
+        - env | grep -e '^DATABASE_URL=' -e '^PAYLOAD_SECRET=' -e '^CRON_SECRET=' -e '^PREVIEW_SECRET=' -e '^S3_BUCKET=' -e '^S3_REGION=' -e '^S3_ACCESS_KEY_ID=' -e '^S3_SECRET_ACCESS_KEY=' -e '^S3_PUBLIC_BASE_URL=' >> .env.production || true
+        - npm run build
+    postBuild:
+      commands:
+        - echo "Post build complete"
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - .next/cache/**/*
+      - node_modules/**/*
