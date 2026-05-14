@@ -68,7 +68,13 @@ export default buildConfig({
           secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
         },
         region: process.env.S3_REGION || 'us-east-1',
-        endpoint: undefined, // Use AWS default endpoint
+        // Setting endpoint causes the plugin to generate direct S3 URLs for media,
+        // avoiding Amplify serverless self-fetch failures with /api/media/file/ paths.
+        endpoint:
+          process.env.S3_BUCKET && process.env.S3_REGION
+            ? `https://s3.${process.env.S3_REGION}.amazonaws.com`
+            : undefined,
+        forcePathStyle: true,
       },
       bucket: process.env.S3_BUCKET || '',
       disableLocalStorage: true,

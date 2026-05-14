@@ -29,6 +29,15 @@ const nextConfig: NextConfig = {
           protocol: url.protocol.replace(':', '') as 'http' | 'https',
         }
       }),
+      // Allow direct S3 path-style URLs for media when deployed (avoids serverless self-fetch issue)
+      ...(process.env.S3_REGION
+        ? [
+            {
+              hostname: `s3.${process.env.S3_REGION}.amazonaws.com`,
+              protocol: 'https' as const,
+            },
+          ]
+        : []),
     ],
   },
   webpack: (webpackConfig) => {
