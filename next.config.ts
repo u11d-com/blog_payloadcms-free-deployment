@@ -29,6 +29,16 @@ const nextConfig: NextConfig = {
           protocol: url.protocol.replace(':', '') as 'http' | 'https',
         }
       }),
+      // Direct S3 path-style URLs — bypasses Lambda so Next.js image optimizer
+      // fetches source images from S3 directly, avoiding the 6 MB Lambda limit.
+      ...(process.env.S3_REGION
+        ? [
+            {
+              hostname: `s3.${process.env.S3_REGION}.amazonaws.com`,
+              protocol: 'https' as const,
+            },
+          ]
+        : []),
     ],
   },
   webpack: (webpackConfig) => {

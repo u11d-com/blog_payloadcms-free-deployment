@@ -68,7 +68,14 @@ export default buildConfig({
           secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || '',
         },
         region: process.env.S3_REGION || 'us-east-1',
-        endpoint: undefined, // Use AWS default endpoint
+        // Use path-style S3 endpoint so the plugin stores absolute S3 URLs in the DB.
+        // This bypasses the Payload API Lambda route when Next.js image optimizer fetches
+        // the source image, avoiding the 6 MB Lambda response size limit (413 errors).
+        endpoint:
+          process.env.S3_BUCKET && process.env.S3_REGION
+            ? `https://s3.${process.env.S3_REGION}.amazonaws.com`
+            : undefined,
+        forcePathStyle: true,
       },
       bucket: process.env.S3_BUCKET || '',
       disableLocalStorage: true,
