@@ -10,6 +10,8 @@ frontend:
       commands:
         - echo "Building the application..."
         - rm -f .env.production
+        - export NEXT_PUBLIC_SERVER_URL="${NEXT_PUBLIC_SERVER_URL:-https://${AWS_BRANCH}.${AWS_APP_ID}.amplifyapp.com}"
+        - echo "Using NEXT_PUBLIC_SERVER_URL=$NEXT_PUBLIC_SERVER_URL"
         - env | grep -e '^NEXT_PUBLIC_' >> .env.production || true
         - env | grep -e '^DATABASE_URL=' -e '^PAYLOAD_SECRET=' -e '^CRON_SECRET=' -e '^PREVIEW_SECRET=' -e '^S3_BUCKET=' -e '^S3_REGION=' -e '^S3_ACCESS_KEY_ID=' -e '^S3_SECRET_ACCESS_KEY=' >> .env.production || true
         - npm run build
